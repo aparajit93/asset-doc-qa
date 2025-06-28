@@ -65,12 +65,17 @@ python3 -m venv venv
 source venv/bin/activate  # or `venv\Scripts\activate` on Windows
 pip install -r requirements.txt
 ```
-### 2. Install Ollama and Mistral
+### 3. Install Ollama and Mistral
 Install Ollama and run
 ```bash
 ollama pull mistral
 ```
-### 2. Run the app
+### 4. Create Directory for Vectorstore (if it doesn't exist)
+Install Ollama and run
+```bash
+mkdir data/vectorstore/faiss_index
+```
+### 5. Run the app
 ```bash
 streamlit run app.py
 ```
