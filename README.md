@@ -1,8 +1,8 @@
-# 🛠️ Asset Document QA with Local LLMs
+# 🛠️ Project: Asset Document QA with Local LLMs
 
 A private, local-first question-answering system for industrial asset documents — powered by LangChain, FAISS, and Ollama. Upload equipment manuals, datasheets, or schematics, and query them conversationally using a chat interface.
 
-Built for industrial reliability. No cloud APIs required.
+No cloud APIs required.
 
 ---
 
