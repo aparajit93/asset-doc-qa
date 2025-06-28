@@ -16,13 +16,12 @@ venv/
 .ipynb_checkpoints/
 
 # FAISS / Pickle index files
-data/vectorstore/faiss_index/*.faiss
-data/vectorstore/faiss_index/*.pkl
-data/vectorstore/faiss_index/*.pkl.*
-data/vectorstore/faiss_index/*.npz
+*.faiss
+*.npz
 
 # Other Pickle files
 *.pkl
+*.pkl.*
 
 # LangChain cache
 .cache/
@@ -46,7 +45,7 @@ stcache/
 Thumbs.db
 
 # Uploaded files (if saved)
-data/raw_pdfs/*.pdf
+*.pdf
 
 # Python packaging
 build/
