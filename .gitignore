@@ -1,0 +1,59 @@
+# Byte-compiled / compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+.env/
+.envrc
+.venv/
+
+# VSCode settings
+.vscode/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# FAISS / Pickle index files
+data/vectorstore/
+faiss_index/*.faiss
+faiss_index/*.pkl
+faiss_index/*.pkl.*
+faiss_index/*.npz
+
+# LangChain cache
+.cache/
+.cache/*
+
+# Logs
+*.log
+
+# Streamlit cache
+.streamlit/
+.stcache/
+stcache/
+.stfolder/
+
+# Temp files
+*.tmp
+*.temp
+*.bak
+*.swp
+.DS_Store
+Thumbs.db
+
+# Uploaded files (if saved)
+data/
+raw_pdfs/*.pdf
+
+# Python packaging
+build/
+dist/
+*.egg-info/
+
+# Testing
+coverage.xml
+htmlcov/
+.pytest_cache/
+test/__pycache__/
