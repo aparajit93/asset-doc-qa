@@ -4,7 +4,10 @@ from pathlib import Path
 from langchain_community.document_loaders import PyMuPDFLoader
 from langchain_community.vectorstores import FAISS
 from langchain_ollama import OllamaLLM
-from langchain.chains import RetrievalQA
+from langchain.chains import create_retrieval_chain
+from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain_core.prompts.chat import HumanMessagePromptTemplate, ChatPromptTemplate
+from langchain_core.prompts.prompt import PromptTemplate
 from langchain_huggingface import HuggingFaceEmbeddings
 from src.utils import load_documents, chunk_documents
 import tempfile
@@ -92,12 +95,19 @@ if 'vector_store' not in st.session_state:
 
 if 'qa_chain' not in st.session_state and 'vector_store' in st.session_state:
     llm = load_model()
-    retriever = st.session_state.vector_store.as_retriever()
-    st.session_state.qa_chain = RetrievalQA.from_chain_type(
-        llm = llm,
-        retriever = retriever,
+    prompt_template = PromptTemplate(
+        input_variables=['input', 'context'],
+        template= "You are an assistant for question-answering tasks." \
+        " Use the following pieces of retrieved context to answer the question. " \
+        "If you don't know the answer, just say that you don't know, don't try to make up an answer." \
+        "\nQuestion: {input} \nContext: {context} \nAnswer:"
     )
-    st.session_state.qa_chain.return_source_documents = True
+
+    prompt = ChatPromptTemplate(input_variables = ['input','context'], messages=[HumanMessagePromptTemplate(prompt=prompt_template)])
+
+    retriever = st.session_state.vector_store.as_retriever()
+    combine_docs_chain = create_stuff_documents_chain(llm, prompt)
+    st.session_state.qa_chain = create_retrieval_chain(retriever, combine_docs_chain)
 
 query = st.chat_input("Ask about the documents...")
 
@@ -114,22 +124,23 @@ if query and 'qa_chain' in st.session_state:
     
     with st.chat_message("assistant"):
         with st.spinner("Searching..."):
-            result = st.session_state.qa_chain.invoke({'query':query})
-            answer = result['result']
+            result = st.session_state.qa_chain.invoke({'input':query})
+            answer = result['answer']
+            sources = result['context']
 
             st.markdown("Answer")
-            st.markdown(f"{result['result']}")
+            st.markdown(f"{answer}")
             st.markdown("---")    
 
             # Print sources
             st.markdown("Source Documents Used")
-            for i, doc in enumerate(result["source_documents"], 1):
+            for i, doc in enumerate(sources, 1):
                 source = doc.metadata.get("source", "Unknown source")
                 page = doc.metadata.get("page", "N/A")
                 preview = doc.page_content[:300].replace("\n", " ")
                 st.markdown(f"**{i}. Source:** `{source}` — **Page:** {page}\n\n> {preview}...")
             
-            sources = result["source_documents"]
+            
             if sources:
                 source_texts = "\n\n".join(
                     [f"**{i}. Source:** `{doc.metadata.get('source', 'unknown')}` — Page {doc.metadata.get('page', 'N/A')}\n> {doc.page_content[:300].replace(chr(10), ' ')}..." for i, doc in enumerate(sources, 1)]
