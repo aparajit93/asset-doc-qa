@@ -1,9 +1,8 @@
 from pathlib import Path
 
-from langchain.chains import create_retrieval_chain
-from langchain.chains.combine_documents import create_stuff_documents_chain
-from langchain_core.prompts.chat import HumanMessagePromptTemplate, ChatPromptTemplate
-from langchain_core.prompts.prompt import PromptTemplate
+from langchain.schema import Document
+from langchain_community.docstore.in_memory import InMemoryDocstore
+from langchain.chains import RetrievalQA
 from langchain_ollama import OllamaLLM
 from langchain_community.vectorstores import FAISS
 from langchain_huggingface import HuggingFaceEmbeddings
@@ -48,20 +47,14 @@ vector_store = FAISS.load_local(
 
 # Initialize LLM (Using Ollama-Mistral)
 llm = OllamaLLM(model='mistral')
-prompt_template = PromptTemplate(
-    input_variables=['input', 'context'],
-    template= "You are an assistant for question-answering tasks." \
-    " Use the following pieces of retrieved context to answer the question. " \
-    "If you don't know the answer, just say that you don't know, don't try to make up an answer." \
-    "\nQuestion: {input} \nContext: {context} \nAnswer:"
-)
-
-prompt = ChatPromptTemplate(input_variables = ['input','context'], messages=[HumanMessagePromptTemplate(prompt=prompt_template)])
 
 # Create retriever-QA chain
 retriever = vector_store.as_retriever()
-combine_docs_chain = create_stuff_documents_chain(llm, prompt)
-qa_chain = create_retrieval_chain(vector_store.as_retriever(), combine_docs_chain)
+qa_chain = RetrievalQA.from_chain_type(
+    llm = llm,
+    retriever = retriever,
+)
+qa_chain.return_source_documents = True
 
 # Main
 print("\n Document QA is ready! Ask a question (or type 'exit'):\n")
@@ -90,14 +83,14 @@ while True:
     # print("\n" + "-"*60)
     ## End Logging
 
-    result = qa_chain.invoke({'input':query})
+    result = qa_chain.invoke({'query':query})
 
-    print("\n Answer: ",result['answer'])
+    print("\n Answer: ",result['result'])
     
 
     # Print sources
     print("\n Source Documents Used:\n")
-    for i, doc in enumerate(result["context"], 1):
+    for i, doc in enumerate(result["source_documents"], 1):
         source = doc.metadata.get("source", "Unknown source")
         page = doc.metadata.get("page", "N/A")
         preview = doc.page_content[:300].replace("\n", " ")  # first 300 chars, single line
